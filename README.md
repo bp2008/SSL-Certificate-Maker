@@ -7,7 +7,7 @@ A graphical tool for generating SSL certificates without any prior knowledge or 
 
 [Download from the releases tab](https://github.com/bp2008/SSL-Certificate-Maker/releases) and run the executable in a location where you have write permission, such as in a "Certificates" directory on your desktop.
 
-For basic usage, you can simply click the `Make Certificate` button and find a new `localhost.pfx` file is created next to the executable.  Nobody likes renewing self-signed certificates, so by default this program uses an expiration date that is 500 years after you started it.
+For basic usage, you can simply click the `Make Certificate` button and find a new `localhost.pfx` file created next to the executable.  Nobody likes renewing self-signed certificates, so by default this program uses an expiration date that is 500 years after you started it.
 
 ## Trusting a Certificate
 
@@ -19,7 +19,7 @@ If you simply want a system to trust a certificate, you only need the signed pub
 
 The `.cer and .key` format is common on Linux.  However if you want to use the certificate with IIS on Windows, you need to install the private key too, which in this case is easiest to do by installing the `.pfx` file to your Local Machine "Personal" certificate store.
 
-*Be careful when trusting certificates.  If someone untrustworthy got ahold of the private key, they could use it to fool your computer into trusting any certificate they want!*
+*Be careful when trusting and sharing certificates.  If someone untrustworthy got ahold of the private key, they could use it to fool your computer into trusting any certificate they want!*
 
 ## Creating Your Own Certificate Authority
 
