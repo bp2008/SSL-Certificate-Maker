@@ -320,7 +320,8 @@ namespace SSLCertificateMaker
 					CertificateBundle b = new CertificateBundle();
 					b.cert = pkcs12Store.GetCertificate(alias)?.Certificate;
 					b.privateKey = pkcs12Store.GetKey(alias)?.Key;
-					return b;
+					if (b.cert != null && b.privateKey != null)
+						return b;
 				}
 				return null;
 			}
