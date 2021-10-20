@@ -21,19 +21,43 @@ namespace SSLCertificateMaker
 {
 	public partial class MainForm : Form
 	{
-		Thread worker;
-		private const string c_SelfSigned = "*Self-Signed*";
+		private Thread worker;
+
+		private const string c_SelfSigned = "None (Self-Signed)";
 		private const string c_make = "Make Certificate";
 		private const string c_cancel = "Cancel";
+
+		public static readonly string CA_DIR;
+		public static readonly string CERT_DIR;
+
+		static MainForm()
+		{
+			FileInfo exe = new FileInfo(Application.ExecutablePath);
+			CA_DIR = new DirectoryInfo(Path.Combine(exe.Directory.FullName, "CA")).FullName;
+			CERT_DIR = new DirectoryInfo(Path.Combine(exe.Directory.FullName, "CERT")).FullName;
+			Directory.CreateDirectory(CA_DIR);
+			Directory.CreateDirectory(CERT_DIR);
+		}
+
 		public MainForm()
 		{
 			InitializeComponent();
+
 			this.Text += " " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 			dateFrom.Value = DateTime.Today.AddYears(-10);
 			dateUntil.Value = DateTime.Today.AddYears(500);
 			cbKeyStrength.SelectedIndex = 1;
+			ddlOutputType.SelectedIndex = 0;
+			ddlOutputType_SelectedIndexChanged(null, null);
+			msKeyUsage.Initialize("Key Usage", KeyUsageOptions);
+			msExtendedKeyUsage.Initialize("Extended Key Usage", ExtendedKeyUsageOptions);
+			//lblKeyUsage.Text = "N/A";
+			//ddlKeyUsage.Items.AddRange(KeyUsageOptions.Select(kvp => kvp.Key).ToArray());
+			//ddlKeyUsage.SelectedIndex = 0;
+
+			btnPresetWebServer_Click(null, null);
+
 			StopProgress();
-			cbCerAndKey_CheckedChanged(null, null);
 		}
 
 		private void PopulateIssuerDropdown()
@@ -41,9 +65,8 @@ namespace SSLCertificateMaker
 			string previouslySelected = cbIssuerSelect.SelectedItem?.ToString();
 			cbIssuerSelect.Items.Clear();
 			cbIssuerSelect.Items.Add(c_SelfSigned);
-			FileInfo exe = new FileInfo(Application.ExecutablePath);
 			List<string> allCerts = new List<string>();
-			foreach (FileInfo fi in exe.Directory.GetFiles())
+			foreach (FileInfo fi in new DirectoryInfo(CA_DIR).GetFiles())
 			{
 				if (string.Compare(fi.Extension, ".pfx", true) == 0 || string.Compare(fi.Extension, ".key", true) == 0)
 					allCerts.Add(fi.Name);
@@ -66,7 +89,27 @@ namespace SSLCertificateMaker
 		{
 			if (btnMakeCert.Text == c_make)
 			{
-				MakeCertArgs args = new MakeCertArgs(int.Parse(cbKeyStrength.SelectedItem.ToString()), dateFrom.Value, dateUntil.Value, GetCleanDomainArray(), txtCertPassword.Text, cbCerAndKey.Checked, cbIssuerSelect.SelectedItem.ToString());
+				MakeCertArgs args = new MakeCertArgs(int.Parse(cbKeyStrength.SelectedItem.ToString()),
+													 dateFrom.Value,
+													 dateUntil.Value,
+													 GetCleanDomainArray(),
+													 txtCertPassword.Text,
+													 (string)ddlOutputType.SelectedItem == ".cer, .key",
+													 cbIssuerSelect.SelectedItem.ToString(),
+													 msKeyUsage.SelectedItems.Cast<MultiSelectListItem<int>>().Select(i => i.Value).Sum(),
+													 msExtendedKeyUsage.SelectedItems.Cast<MultiSelectListItem<KeyPurposeID>>().Select(i => i.Value).ToArray()
+													 );
+				args.OutputPath = CERT_DIR;
+				if (LooksLikeCA(args))
+				{
+					if (DialogResult.Yes == MessageBox.Show(
+						"Should this certificate be saved in the" + Environment.NewLine
+						+ "\"CA\" folder, making it available as" + Environment.NewLine
+						+ "a Certificate Authority?", "Certificate Authority?", MessageBoxButtons.YesNo))
+					{
+						args.OutputPath = CA_DIR;
+					}
+				}
 				if (args.domains.Length == 0)
 				{
 					MessageBox.Show("No domain names were entered!" + Environment.NewLine + Environment.NewLine
@@ -89,6 +132,15 @@ namespace SSLCertificateMaker
 			}
 		}
 
+		private bool LooksLikeCA(MakeCertArgs args)
+		{
+			if ((args.KeyUsage & 6) != 6)
+				return false;
+			if (args.ExtendedKeyUsage.Length != 0)
+				return false;
+			return true;
+		}
+
 		private string[] GetCleanDomainArray()
 		{
 			return txtAlternateDomains.Text.Split(new char[] { '\r', '\n' }).Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
@@ -101,7 +153,7 @@ namespace SSLCertificateMaker
 				MakeCertArgs args = (MakeCertArgs)Argument;
 
 				// Verify that the files do not already exist
-				string safeFileName = SafeFileName(args.domains[0]);
+				string safeFileName = Path.Combine(args.OutputPath, SafeFileName(args.domains[0]));
 				if (args.saveCerAndKey)
 				{
 					if (File.Exists(safeFileName + ".cer"))
@@ -125,22 +177,23 @@ namespace SSLCertificateMaker
 				}
 
 				CertificateBundle certBundle;
-				if (args.issuer == "*Self-Signed*")
+				if (args.issuer == c_SelfSigned)
 				{
-					certBundle = CertMaker.GetCertificateSignedBySelf(args.domains, args.keyStrength, args.validFrom, args.validTo);
+					certBundle = CertMaker.GetCertificateSignedBySelf(args);
 				}
 				else
 				{
 					CertificateBundle issuerBundle = null;
-					if (args.issuer.EndsWith(".pfx", StringComparison.OrdinalIgnoreCase))
+					string issuerFile = Path.Combine(CA_DIR, args.issuer);
+					if (issuerFile.EndsWith(".pfx", StringComparison.OrdinalIgnoreCase))
 					{
 						string password = null;
 						while (issuerBundle == null)
 						{
-							issuerBundle = CertificateBundle.LoadFromPfxFile(args.issuer, password);
+							issuerBundle = CertificateBundle.LoadFromPfxFile(issuerFile, password);
 							if (issuerBundle == null)
 							{
-								PasswordPrompt pp = new PasswordPrompt("CA file is protected", "The .pfx file requires a password:");
+								PasswordPrompt pp = new PasswordPrompt("CA file is protected", "The CA private key requires a password:");
 								this.Invoke((Func<IWin32Window, DialogResult>)pp.ShowDialog, this);
 								if (pp.OkWasClicked)
 									password = pp.EnteredPassword;
@@ -151,11 +204,11 @@ namespace SSLCertificateMaker
 					}
 					else
 					{
-						string cerFile = args.issuer.EndsWith(".key", StringComparison.OrdinalIgnoreCase) ? args.issuer.Remove(args.issuer.Length - 4) + ".cer" : null;
-						issuerBundle = CertificateBundle.LoadFromCerAndKeyFiles(cerFile, args.issuer);
+						string cerFile = issuerFile.EndsWith(".key", StringComparison.OrdinalIgnoreCase) ? issuerFile.Remove(issuerFile.Length - 4) + ".cer" : null;
+						issuerBundle = CertificateBundle.LoadFromCerAndKeyFiles(cerFile, issuerFile);
 					}
 
-					certBundle = CertMaker.GetCertificateSignedByCA(args.domains, args.keyStrength, args.validFrom, args.validTo, issuerBundle);
+					certBundle = CertMaker.GetCertificateSignedByCA(args, issuerBundle);
 				}
 
 				if (args.saveCerAndKey)
@@ -193,8 +246,8 @@ namespace SSLCertificateMaker
 		}
 		private void StartProgress()
 		{
-			if (pbProgress.InvokeRequired)
-				pbProgress.Invoke((Action)StartProgress);
+			if (this.InvokeRequired)
+				this.Invoke((Action)StartProgress);
 			else
 			{
 				pbProgress.Style = ProgressBarStyle.Marquee;
@@ -203,8 +256,8 @@ namespace SSLCertificateMaker
 		}
 		private void StopProgress()
 		{
-			if (pbProgress.InvokeRequired)
-				pbProgress.Invoke((Action)StopProgress);
+			if (this.InvokeRequired)
+				this.Invoke((Action)StopProgress);
 			else
 			{
 				pbProgress.Style = ProgressBarStyle.Continuous;
@@ -214,37 +267,68 @@ namespace SSLCertificateMaker
 				PopulateIssuerDropdown();
 			}
 		}
-		private class MakeCertArgs
-		{
-			public int keyStrength;
-			public DateTime validFrom;
-			public DateTime validTo;
-			public string[] domains;
-			public string password;
-			public bool saveCerAndKey;
-			public string issuer;
-			public MakeCertArgs(int keyStrength, DateTime validFrom, DateTime validTo, string[] domains, string password, bool saveCerAndKey, string issuerCert)
-			{
-				this.keyStrength = keyStrength;
-				this.validFrom = validFrom;
-				this.validTo = validTo;
-				this.domains = domains;
-				this.password = password;
-				this.saveCerAndKey = saveCerAndKey;
-				this.issuer = issuerCert;
-			}
-		}
 
-		private void btnConvertCerts_Click(object sender, EventArgs e)
+		private void ddlOutputType_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			txtCertPassword.Enabled = (string)ddlOutputType.SelectedItem == ".pfx";
+		}
+		private void cerkeyPfxToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ConvertCerts cc = new ConvertCerts();
 			cc.ShowDialog(this);
 			PopulateIssuerDropdown();
 		}
 
-		private void cbCerAndKey_CheckedChanged(object sender, EventArgs e)
+		private void MainForm_Load(object sender, EventArgs e)
 		{
-			txtCertPassword.Enabled = !cbCerAndKey.Checked;
+
+		}
+
+		#region Key Usage
+		private static MultiSelectListItem<int>[] KeyUsageOptions = new MultiSelectListItem<int>[]
+		{
+			new MultiSelectListItem<int>("EncipherOnly (1)", KeyUsage.EncipherOnly),
+			new MultiSelectListItem<int>("CRL Signing (2)", KeyUsage.CrlSign),
+			new MultiSelectListItem<int>("Certificate Signing (4)", KeyUsage.KeyCertSign),
+			new MultiSelectListItem<int>("KeyAgreement (8)", KeyUsage.KeyAgreement),
+			new MultiSelectListItem<int>("DataEncipherment (16)", KeyUsage.DataEncipherment),
+			new MultiSelectListItem<int>("KeyEncipherment (32)", KeyUsage.KeyEncipherment),
+			new MultiSelectListItem<int>("NonRepudiation (64)", KeyUsage.NonRepudiation),
+			new MultiSelectListItem<int>("DigitalSignature (128)", KeyUsage.DigitalSignature),
+			new MultiSelectListItem<int>("DecipherOnly (32768)", KeyUsage.DecipherOnly)
+		};
+		#endregion
+
+		#region Extended Key Usage
+		private static MultiSelectListItem<KeyPurposeID>[] ExtendedKeyUsageOptions = new MultiSelectListItem<KeyPurposeID>[]
+		{
+			new MultiSelectListItem<KeyPurposeID>("Any Extended Key Usage", KeyPurposeID.AnyExtendedKeyUsage),
+			new MultiSelectListItem<KeyPurposeID>("Client Auth", KeyPurposeID.IdKPClientAuth),
+			new MultiSelectListItem<KeyPurposeID>("Code Signing", KeyPurposeID.IdKPCodeSigning),
+			new MultiSelectListItem<KeyPurposeID>("Email Protection", KeyPurposeID.IdKPEmailProtection),
+			new MultiSelectListItem<KeyPurposeID>("Ipsec End System", KeyPurposeID.IdKPIpsecEndSystem),
+			new MultiSelectListItem<KeyPurposeID>("Ipsec Tunnel", KeyPurposeID.IdKPIpsecTunnel),
+			new MultiSelectListItem<KeyPurposeID>("Ipsec User", KeyPurposeID.IdKPIpsecUser),
+			new MultiSelectListItem<KeyPurposeID>("Mac Address", KeyPurposeID.IdKPMacAddress),
+			new MultiSelectListItem<KeyPurposeID>("Ocsp Signing", KeyPurposeID.IdKPOcspSigning),
+			new MultiSelectListItem<KeyPurposeID>("Server Auth", KeyPurposeID.IdKPServerAuth),
+			new MultiSelectListItem<KeyPurposeID>("Smart Card Logon", KeyPurposeID.IdKPSmartCardLogon),
+			new MultiSelectListItem<KeyPurposeID>("Time Stamping", KeyPurposeID.IdKPTimeStamping)
+		};
+		#endregion
+
+		private void btnPresetWebServer_Click(object sender, EventArgs e)
+		{
+			msKeyUsage.SelectedIndices = KeyUsageOptions.Select(kvp => kvp.Key.EndsWith("(32)") || kvp.Key.EndsWith("(128)")).ToArray();
+			msExtendedKeyUsage.SelectedIndices = ExtendedKeyUsageOptions.Select(kvp => kvp.Key == "Client Auth" || kvp.Key == "Server Auth").ToArray();
+			cbKeyStrength.SelectedIndex = 1;
+
+		}
+		private void btnPresetCA_Click(object sender, EventArgs e)
+		{
+			msKeyUsage.SelectedIndices = KeyUsageOptions.Select(kvp => kvp.Key.EndsWith("(2)") || kvp.Key.EndsWith("(4)")).ToArray();
+			msExtendedKeyUsage.SelectedIndices = ExtendedKeyUsageOptions.Select(kvp => false).ToArray();
+			cbKeyStrength.SelectedIndex = 3;
 		}
 	}
 }

@@ -34,8 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.9\lib\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="Costura, Version=1.6.2.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.1.6.2\lib\dotnet\Costura.dll</HintPath>
@@ -43,6 +43,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -61,11 +62,31 @@
     <Compile Include="ConvertCerts.Designer.cs">
       <DependentUpon>ConvertCerts.cs</DependentUpon>
     </Compile>
+    <Compile Include="EditMultiSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditMultiSelect.Designer.cs">
+      <DependentUpon>EditMultiSelect.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MakeCertArgs.cs" />
+    <Compile Include="MultiSelectCompact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MultiSelectCompact.Designer.cs">
+      <DependentUpon>MultiSelectCompact.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MultiSelectListItem.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextInputPrompt.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextInputPrompt.Designer.cs">
+      <DependentUpon>TextInputPrompt.cs</DependentUpon>
     </Compile>
     <Compile Include="PasswordPrompt.cs">
       <SubType>Form</SubType>
@@ -75,11 +96,23 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserControlBase.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <EmbeddedResource Include="ConvertCerts.resx">
       <DependentUpon>ConvertCerts.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EditMultiSelect.resx">
+      <DependentUpon>EditMultiSelect.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MultiSelectCompact.resx">
+      <DependentUpon>MultiSelectCompact.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextInputPrompt.resx">
+      <DependentUpon>TextInputPrompt.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordPrompt.resx">
       <DependentUpon>PasswordPrompt.cs</DependentUpon>

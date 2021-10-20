@@ -10,33 +10,29 @@ using System.Windows.Forms;
 
 namespace SSLCertificateMaker
 {
-	public partial class PasswordPrompt : Form
+	public partial class TextInputPrompt : Form
 	{
 		/// <summary>
 		/// If true, the OK button was clicked.  If false, it was not.
 		/// </summary>
 		public bool OkWasClicked = false;
+
 		/// <summary>
-		/// The user-entered password.
+		/// The user-entered text.
 		/// </summary>
-		public string EnteredPassword
+		public string EnteredText
 		{
 			get
 			{
-				return txtPassword.Text;
+				return txtInput.Text;
 			}
 		}
-		public PasswordPrompt(string title = "Password Prompt", string labelText = "Enter the password:")
+
+		public TextInputPrompt(string title = "Text Input Prompt", string labelText = "Enter some text:")
 		{
 			InitializeComponent();
 			this.Text = title;
-			lblPasswordPrompt.Text = labelText;
-			cbMask_CheckedChanged(null, null);
-		}
-
-		private void cbMask_CheckedChanged(object sender, EventArgs e)
-		{
-			txtPassword.UseSystemPasswordChar = cbMask.Checked;
+			lblTextInputPrompt.Text = labelText;
 		}
 
 		private void btnOk_Click(object sender, EventArgs e)
@@ -49,7 +45,7 @@ namespace SSLCertificateMaker
 		private void btnCancel_Click(object sender, EventArgs e)
 		{
 			this.DialogResult = DialogResult.Cancel;
-			txtPassword.Clear();
+			txtInput.Clear();
 			this.Close();
 		}
 	}

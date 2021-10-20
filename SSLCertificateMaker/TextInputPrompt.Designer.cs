@@ -1,6 +1,6 @@
 ﻿namespace SSLCertificateMaker
 {
-	partial class PasswordPrompt
+	partial class TextInputPrompt
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -28,32 +28,31 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.txtPassword = new System.Windows.Forms.TextBox();
-			this.lblPasswordPrompt = new System.Windows.Forms.Label();
+			this.txtInput = new System.Windows.Forms.TextBox();
+			this.lblTextInputPrompt = new System.Windows.Forms.Label();
 			this.btnOk = new System.Windows.Forms.Button();
 			this.btnCancel = new System.Windows.Forms.Button();
-			this.cbMask = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
-			// txtPassword
+			// txtInput
 			// 
-			this.txtPassword.Location = new System.Drawing.Point(16, 29);
-			this.txtPassword.Name = "txtPassword";
-			this.txtPassword.Size = new System.Drawing.Size(280, 20);
-			this.txtPassword.TabIndex = 0;
+			this.txtInput.Location = new System.Drawing.Point(16, 29);
+			this.txtInput.Name = "txtInput";
+			this.txtInput.Size = new System.Drawing.Size(280, 20);
+			this.txtInput.TabIndex = 0;
 			// 
-			// lblPasswordPrompt
+			// lblTextInputPrompt
 			// 
-			this.lblPasswordPrompt.AutoSize = true;
-			this.lblPasswordPrompt.Location = new System.Drawing.Point(13, 13);
-			this.lblPasswordPrompt.Name = "lblPasswordPrompt";
-			this.lblPasswordPrompt.Size = new System.Drawing.Size(143, 13);
-			this.lblPasswordPrompt.TabIndex = 1;
-			this.lblPasswordPrompt.Text = "Label text set in code behind";
+			this.lblTextInputPrompt.AutoSize = true;
+			this.lblTextInputPrompt.Location = new System.Drawing.Point(13, 13);
+			this.lblTextInputPrompt.Name = "lblTextInputPrompt";
+			this.lblTextInputPrompt.Size = new System.Drawing.Size(143, 13);
+			this.lblTextInputPrompt.TabIndex = 1;
+			this.lblTextInputPrompt.Text = "Label text set in code behind";
 			// 
 			// btnOk
 			// 
-			this.btnOk.Location = new System.Drawing.Point(140, 88);
+			this.btnOk.Location = new System.Drawing.Point(140, 55);
 			this.btnOk.Name = "btnOk";
 			this.btnOk.Size = new System.Drawing.Size(75, 23);
 			this.btnOk.TabIndex = 3;
@@ -64,7 +63,7 @@
 			// btnCancel
 			// 
 			this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.btnCancel.Location = new System.Drawing.Point(221, 88);
+			this.btnCancel.Location = new System.Drawing.Point(221, 55);
 			this.btnCancel.Name = "btnCancel";
 			this.btnCancel.Size = new System.Drawing.Size(75, 23);
 			this.btnCancel.TabIndex = 4;
@@ -72,33 +71,21 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
-			// cbMask
-			// 
-			this.cbMask.AutoSize = true;
-			this.cbMask.Location = new System.Drawing.Point(16, 55);
-			this.cbMask.Name = "cbMask";
-			this.cbMask.Size = new System.Drawing.Size(128, 17);
-			this.cbMask.TabIndex = 2;
-			this.cbMask.Text = "Mask Password Input";
-			this.cbMask.UseVisualStyleBackColor = true;
-			this.cbMask.CheckedChanged += new System.EventHandler(this.cbMask_CheckedChanged);
-			// 
-			// PasswordPrompt
+			// TextInputPrompt
 			// 
 			this.AcceptButton = this.btnOk;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(308, 123);
+			this.ClientSize = new System.Drawing.Size(308, 90);
 			this.Controls.Add(this.btnCancel);
 			this.Controls.Add(this.btnOk);
-			this.Controls.Add(this.cbMask);
-			this.Controls.Add(this.lblPasswordPrompt);
-			this.Controls.Add(this.txtPassword);
+			this.Controls.Add(this.lblTextInputPrompt);
+			this.Controls.Add(this.txtInput);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-			this.Name = "PasswordPrompt";
+			this.Name = "TextInputPrompt";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-			this.Text = "Password Prompt";
+			this.Text = "Text Input Prompt";
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -106,10 +93,9 @@
 
 		#endregion
 
-		private System.Windows.Forms.TextBox txtPassword;
-		private System.Windows.Forms.Label lblPasswordPrompt;
+		private System.Windows.Forms.TextBox txtInput;
+		private System.Windows.Forms.Label lblTextInputPrompt;
 		private System.Windows.Forms.Button btnOk;
 		private System.Windows.Forms.Button btnCancel;
-		private System.Windows.Forms.CheckBox cbMask;
 	}
 }

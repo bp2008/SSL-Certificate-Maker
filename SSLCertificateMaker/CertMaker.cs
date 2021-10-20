@@ -54,15 +54,18 @@ namespace SSLCertificateMaker
 		/// </summary>
 		/// <param name="domains"></param>
 		/// <param name="subjectPublic"></param>
-		/// <param name="validFrom"></param>
-		/// <param name="validTo"></param>
 		/// <param name="issuerName"></param>
 		/// <param name="issuerPublic"></param>
 		/// <param name="issuerPrivate"></param>
-		/// <param name="CA_PathLengthConstraint">If non-null, the certificate will be marked as a certificate authority with the specified path length constraint (0 to allow no child certificate authorities, 1 to allow 1, etc).</param>
 		/// <returns></returns>
-		private static X509Certificate GenerateCertificate(string[] domains, AsymmetricKeyParameter subjectPublic, DateTime validFrom, DateTime validTo, string issuerName, AsymmetricKeyParameter issuerPublic, AsymmetricKeyParameter issuerPrivate, int? CA_PathLengthConstraint)
+		private static X509Certificate GenerateCertificate(MakeCertArgs args, AsymmetricKeyParameter subjectPublic, string issuerName, AsymmetricKeyParameter issuerPublic, AsymmetricKeyParameter issuerPrivate)
 		{
+			// TODO: Drop support for .cer and .key files.  Change instead to "name-cert.pem", "name-key.pem", "name-chain.pem".
+			// TODO: cert and chain (public stuff only) can be all in one pem file. e.g. "name-fullchain.pem"
+			// TODO: key, cert, chain can be all in one pem file. e.g. "name-all.pem"
+			// https://www.digicert.com/kb/ssl-support/pem-ssl-creation.htm
+			bool isCA = args.KeyUsage == (KeyUsage.CrlSign | KeyUsage.KeyCertSign);
+
 			ISignatureFactory signatureFactory;
 			if (issuerPrivate is ECPrivateKeyParameters)
 			{
@@ -79,10 +82,10 @@ namespace SSLCertificateMaker
 
 			X509V3CertificateGenerator certGenerator = new X509V3CertificateGenerator();
 			certGenerator.SetIssuerDN(new X509Name("CN=" + issuerName));
-			certGenerator.SetSubjectDN(new X509Name("CN=" + domains[0]));
+			certGenerator.SetSubjectDN(new X509Name("CN=" + args.domains[0]));
 			certGenerator.SetSerialNumber(BigInteger.ProbablePrime(120, new Random()));
-			certGenerator.SetNotBefore(validFrom);
-			certGenerator.SetNotAfter(validTo);
+			certGenerator.SetNotBefore(args.validFrom);
+			certGenerator.SetNotAfter(args.validTo);
 			certGenerator.SetPublicKey(subjectPublic);
 
 			if (issuerPublic != null)
@@ -90,16 +93,27 @@ namespace SSLCertificateMaker
 				AuthorityKeyIdentifierStructure akis = new AuthorityKeyIdentifierStructure(issuerPublic);
 				certGenerator.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, akis);
 			}
-			if (CA_PathLengthConstraint != null && CA_PathLengthConstraint >= 0)
+
+			// Subject Key Identifier
+			SubjectKeyIdentifierStructure skis = new SubjectKeyIdentifierStructure(subjectPublic);
+			certGenerator.AddExtension(X509Extensions.SubjectKeyIdentifier, false, skis);
+
+			if (!isCA || args.domains.Length > 1)
 			{
-				X509Extension extension = new X509Extension(true, new DerOctetString(new BasicConstraints(CA_PathLengthConstraint.Value)));
-				certGenerator.AddExtension(X509Extensions.BasicConstraints, extension.IsCritical, extension.GetParsedValue());
+				// Add SANs (Subject Alternative Names)
+				GeneralName[] names = args.domains.Select(domain => new GeneralName(GeneralName.DnsName, domain)).ToArray();
+				GeneralNames subjectAltName = new GeneralNames(names);
+				certGenerator.AddExtension(X509Extensions.SubjectAlternativeName, false, subjectAltName);
 			}
 
-			// Add SANs (Subject Alternative Names)
-			GeneralName[] names = domains.Select(domain => new GeneralName(GeneralName.DnsName, domain)).ToArray();
-			GeneralNames subjectAltName = new GeneralNames(names);
-			certGenerator.AddExtension(X509Extensions.SubjectAlternativeName, false, subjectAltName);
+			// Specify allowed key usage
+			if (args.KeyUsage != 0)
+				certGenerator.AddExtension(X509Extensions.KeyUsage, true, new KeyUsage(args.KeyUsage));
+			if (args.ExtendedKeyUsage.Length != 0)
+				certGenerator.AddExtension(X509Extensions.ExtendedKeyUsage, false, new ExtendedKeyUsage(args.ExtendedKeyUsage));
+
+			// Specify Basic Constraints
+			certGenerator.AddExtension(X509Extensions.BasicConstraints, true, isCA ? new BasicConstraints(0) : new BasicConstraints(false));
 
 			return certGenerator.Generate(signatureFactory);
 		}
@@ -158,17 +172,17 @@ namespace SSLCertificateMaker
 
 		#region Public Methods
 		/// <summary>
-		/// Generates a self-signed certificate.  This could be used standalone or as a certificate authority.
+		/// Generates a self-signed certificate.
 		/// </summary>
 		/// <param name="domains">An array of domain names or "subject" common names / alternative names.  If making a certificate authority, you could just let this be a single string, not even a domain name but something like "Do Not Trust This Root CA".</param>
 		/// <param name="keySizeBits">Key size in bits for the RSA keys.</param>
 		/// <param name="validFrom">Start date for certificate validity.</param>
 		/// <param name="validTo">End date for certificate validity.</param>
 		/// <returns></returns>
-		public static CertificateBundle GetCertificateSignedBySelf(string[] domains, int keySizeBits, DateTime validFrom, DateTime validTo)
+		public static CertificateBundle GetCertificateSignedBySelf(MakeCertArgs args)
 		{
-			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(keySizeBits);
-			X509Certificate cert = GenerateCertificate(domains, keys.Public, validFrom, validTo, domains[0], null, keys.Private, null);
+			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(args.keyStrength);
+			X509Certificate cert = GenerateCertificate(args, keys.Public, args.domains[0], null, keys.Private);
 
 			return new CertificateBundle(cert, keys.Private);
 		}
@@ -182,32 +196,32 @@ namespace SSLCertificateMaker
 		/// <param name="validTo">End date for certificate validity.</param>
 		/// <param name="ca">A CertificateBundle representing the CA used to sign the new certificate.</param>
 		/// <returns></returns>
-		public static CertificateBundle GetCertificateSignedByCA(string[] domains, int keySizeBits, DateTime validFrom, DateTime validTo, CertificateBundle ca)
+		public static CertificateBundle GetCertificateSignedByCA(MakeCertArgs args, CertificateBundle ca)
 		{
-			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(keySizeBits);
-			X509Certificate cert = GenerateCertificate(domains, keys.Public, validFrom, validTo, ca.GetSubjectName(), ca.cert.GetPublicKey(), ca.privateKey, null);
+			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(args.keyStrength);
+			X509Certificate cert = GenerateCertificate(args, keys.Public, ca.GetSubjectName(), ca.cert.GetPublicKey(), ca.privateKey);
 
 			return new CertificateBundle(cert, keys.Private);
 		}
 
-		/// <summary>
-		/// Generates a certificate signed by the specified certificate authority.
-		/// </summary>
-		/// <param name="domains">An array of domain names or subject common names / alternative names.</param>
-		/// <param name="keySizeBits">Key size in bits for the RSA keys.</param>
-		/// <param name="validFrom">Start date for certificate validity.</param>
-		/// <param name="validTo">End date for certificate validity.</param>
-		/// <param name="caName">The name of the certificate authority, e.g. "Do Not Trust This Root CA".</param>
-		/// <param name="caPublic">The public key of the certificate authority.  May be null if you don't have it handy.</param>
-		/// <param name="caPrivate">The private key of the certificate authority.</param>
-		/// <returns></returns>
-		public static CertificateBundle GetCertificateSignedByCA(string[] domains, int keySizeBits, DateTime validFrom, DateTime validTo, string caName, AsymmetricKeyParameter caPublic, AsymmetricKeyParameter caPrivate)
-		{
-			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(keySizeBits);
-			X509Certificate cert = GenerateCertificate(domains, keys.Public, validFrom, validTo, caName, caPublic, caPrivate, null);
+		///// <summary>
+		///// Generates a certificate signed by the specified certificate authority.
+		///// </summary>
+		///// <param name="domains">An array of domain names or subject common names / alternative names.</param>
+		///// <param name="keySizeBits">Key size in bits for the RSA keys.</param>
+		///// <param name="validFrom">Start date for certificate validity.</param>
+		///// <param name="validTo">End date for certificate validity.</param>
+		///// <param name="caName">The name of the certificate authority, e.g. "Do Not Trust This Root CA".</param>
+		///// <param name="caPublic">The public key of the certificate authority.  May be null if you don't have it handy.</param>
+		///// <param name="caPrivate">The private key of the certificate authority.</param>
+		///// <returns></returns>
+		//public static CertificateBundle GetCertificateSignedByCA(string[] domains, int keySizeBits, DateTime validFrom, DateTime validTo, string caName, AsymmetricKeyParameter caPublic, AsymmetricKeyParameter caPrivate)
+		//{
+		//	AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(keySizeBits);
+		//	X509Certificate cert = GenerateCertificate(domains, keys.Public, validFrom, validTo, caName, caPublic, caPrivate, null);
 
-			return new CertificateBundle(cert, keys.Private);
-		}
+		//	return new CertificateBundle(cert, keys.Private);
+		//}
 		#endregion
 	}
 
@@ -215,6 +229,7 @@ namespace SSLCertificateMaker
 	{
 		public X509Certificate cert;
 		public AsymmetricKeyParameter privateKey;
+		public X509Certificate[] chain;
 		public CertificateBundle() { }
 		public CertificateBundle(X509Certificate cert, AsymmetricKeyParameter privateKey)
 		{
@@ -320,6 +335,7 @@ namespace SSLCertificateMaker
 					CertificateBundle b = new CertificateBundle();
 					b.cert = pkcs12Store.GetCertificate(alias)?.Certificate;
 					b.privateKey = pkcs12Store.GetKey(alias)?.Key;
+					b.chain = pkcs12Store.GetCertificateChain(alias).Select(e=>e.Certificate).ToArray();
 					if (b.cert != null && b.privateKey != null)
 						return b;
 				}

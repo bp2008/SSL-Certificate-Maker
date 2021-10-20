@@ -31,15 +31,18 @@ namespace SSLCertificateMaker
 			{
 				string previouslySelected = cbConvertSource.SelectedItem?.ToString();
 				cbConvertSource.Items.Clear();
-				FileInfo exe = new FileInfo(Application.ExecutablePath);
-				List<string> allCerts = new List<string>();
-				foreach (FileInfo fi in exe.Directory.GetFiles())
+				List<CertItem> allCerts = new List<CertItem>();
+				foreach (FileInfo fi in new DirectoryInfo(MainForm.CA_DIR).GetFiles())
 				{
 					if (string.Compare(fi.Extension, ".pfx", true) == 0 || string.Compare(fi.Extension, ".key", true) == 0)
-						allCerts.Add(fi.Name);
+						allCerts.Add(new CertItem("[CA] " + fi.Name, fi.FullName));
 				}
-				allCerts.Sort();
-				cbConvertSource.Items.AddRange(allCerts.ToArray());
+				foreach (FileInfo fi in new DirectoryInfo(MainForm.CERT_DIR).GetFiles())
+				{
+					if (string.Compare(fi.Extension, ".pfx", true) == 0 || string.Compare(fi.Extension, ".key", true) == 0)
+						allCerts.Add(new CertItem(fi.Name, fi.FullName));
+				}
+				cbConvertSource.Items.AddRange(allCerts.OrderBy(ci => ci.Name).ToArray());
 				SelectPreviouslySelected(previouslySelected, cbConvertSource);
 			}
 			finally
@@ -76,17 +79,17 @@ namespace SSLCertificateMaker
 		{
 			if (suppressSourceChange)
 				return;
-			string previouslySelected = cbOutputFormat.SelectedItem?.ToString();
+			string previouslySelected = (string)cbOutputFormat.SelectedItem;
 			cbOutputFormat.Items.Clear();
 
 			// Figure out which method IDs are allowed
 			List<string> allowedOutputHandlerIDs = new List<string>();
 			if (cbConvertSource.Items.Count > 0)
 			{
-				string source = cbConvertSource.SelectedItem.ToString();
+				CertItem source = (CertItem)cbConvertSource.SelectedItem;
 				foreach (KeyValuePair<string, CertConversionHandler> kvp in handlers)
 				{
-					if (!kvp.Value.IsAllowedSource(source))
+					if (!kvp.Value.IsAllowedSource(source.FullName))
 						allowedOutputHandlerIDs.Add(kvp.Key);
 				}
 			}
@@ -106,20 +109,20 @@ namespace SSLCertificateMaker
 			string outputHandlerId = (string)cbOutputFormat.SelectedItem;
 			if (outputHandlerId == null)
 				return;
-			string source = cbConvertSource.SelectedItem.ToString();
-			if (!string.IsNullOrWhiteSpace(source))
+			CertItem source = (CertItem)cbConvertSource.SelectedItem;
+			if (!string.IsNullOrWhiteSpace(source.FullName))
 			{
-				CertConversionHandler inputHandler = FindInputHandlerForSource(source);
+				CertConversionHandler inputHandler = FindInputHandlerForSource(source.FullName);
 				CertConversionHandler outputHandler = handlers[outputHandlerId];
-				CertificateBundle bundle = inputHandler.ReadInput(source);
+				CertificateBundle bundle = inputHandler.ReadInput(source.FullName);
 				if (bundle == null)
 				{
 					MessageBox.Show("Unable to read source file(s). Aborting conversion.");
 				}
 				else
 				{
-					FileInfo fiSrc = new FileInfo(source);
-					string srcNoExt = fiSrc.Name.Remove(fiSrc.Name.Length - fiSrc.Extension.Length);
+					FileInfo fiSrc = new FileInfo(source.FullName);
+					string srcNoExt = fiSrc.FullName.Remove(fiSrc.FullName.Length - fiSrc.Extension.Length);
 					outputHandler.WriteOutput(srcNoExt, bundle);
 				}
 			}
@@ -145,16 +148,16 @@ namespace SSLCertificateMaker
 			}
 			return bundle;
 		}
-		private void OutputPfx(string fileNameWithoutExtension, CertificateBundle bundle)
+		private void OutputPfx(string fullNameWithoutExtension, CertificateBundle bundle)
 		{
-			string fileName = fileNameWithoutExtension + ".pfx";
+			string fileName = fullNameWithoutExtension + ".pfx";
 			if (File.Exists(fileName))
 			{
 				DialogResult dr = MessageBox.Show("Output file \"" + fileName + "\" already exists.  Overwrite?", "Overwrite existing file?", MessageBoxButtons.YesNo);
 				if (dr != DialogResult.Yes)
 					return;
 			}
-			File.WriteAllBytes(fileNameWithoutExtension + ".pfx", bundle.GetPfx(true, null));
+			File.WriteAllBytes(fullNameWithoutExtension + ".pfx", bundle.GetPfx(true, null));
 		}
 		#endregion
 		#region CER and KEY handlers
@@ -164,16 +167,16 @@ namespace SSLCertificateMaker
 			CertificateBundle bundle = CertificateBundle.LoadFromCerAndKeyFiles(cerSourcePath, keySourcePath);
 			return bundle;
 		}
-		private void OutputCerAndKey(string fileNameWithoutExtension, CertificateBundle bundle)
+		private void OutputCerAndKey(string fullNameWithoutExtension, CertificateBundle bundle)
 		{
-			string fileNameCer = fileNameWithoutExtension + ".cer";
+			string fileNameCer = fullNameWithoutExtension + ".cer";
 			if (File.Exists(fileNameCer))
 			{
 				DialogResult dr = MessageBox.Show("Output file \"" + fileNameCer + "\" already exists.  Overwrite?", "Overwrite existing file?", MessageBoxButtons.YesNo);
 				if (dr != DialogResult.Yes)
 					return;
 			}
-			string fileNameKey = fileNameWithoutExtension + ".key";
+			string fileNameKey = fullNameWithoutExtension + ".key";
 			if (File.Exists(fileNameKey))
 			{
 				DialogResult dr = MessageBox.Show("Output file \"" + fileNameKey + "\" already exists.  Overwrite?", "Overwrite existing file?", MessageBoxButtons.YesNo);
@@ -205,6 +208,22 @@ namespace SSLCertificateMaker
 						return true;
 				}
 				return false;
+			}
+		}
+
+		private class CertItem
+		{
+			public string Name;
+			public string FullName;
+
+			public CertItem(string name, string fullName)
+			{
+				this.Name = name;
+				this.FullName = fullName;
+			}
+			public override string ToString()
+			{
+				return Name;
 			}
 		}
 	}
