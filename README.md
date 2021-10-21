@@ -1,7 +1,7 @@
 # SSL-Certificate-Maker
 A graphical tool for generating SSL certificates without any prior knowledge or command line tools.
 
-![Screenshot](https://i.imgur.com/zBX2ueh.png)
+![Screenshot](https://i.imgur.com/9IE0R1l.png)
 
 ## Purpose
 
