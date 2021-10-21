@@ -182,7 +182,8 @@
 			// 
 			// txtCertPassword
 			// 
-			this.txtCertPassword.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.txtCertPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtCertPassword.Location = new System.Drawing.Point(145, 443);
 			this.txtCertPassword.Name = "txtCertPassword";
 			this.txtCertPassword.Size = new System.Drawing.Size(331, 20);
@@ -212,6 +213,8 @@
 			// 
 			// cbIssuerSelect
 			// 
+			this.cbIssuerSelect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.cbIssuerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.cbIssuerSelect.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.cbIssuerSelect.FormattingEnabled = true;
@@ -219,8 +222,7 @@
 			this.cbIssuerSelect.Name = "cbIssuerSelect";
 			this.cbIssuerSelect.Size = new System.Drawing.Size(331, 21);
 			this.cbIssuerSelect.TabIndex = 1;
-			this.toolTip1.SetToolTip(this.cbIssuerSelect, "The certificate can be self-signed or signed by another certificate in this direc" +
-        "tory.");
+			this.toolTip1.SetToolTip(this.cbIssuerSelect, "The certificate you create will be signed by the certificate you choose here.");
 			// 
 			// label11
 			// 
@@ -235,6 +237,7 @@
 			// 
 			// btnPresetCA
 			// 
+			this.btnPresetCA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.btnPresetCA.Location = new System.Drawing.Point(234, 249);
 			this.btnPresetCA.Name = "btnPresetCA";
 			this.btnPresetCA.Size = new System.Drawing.Size(43, 23);
@@ -246,6 +249,7 @@
 			// 
 			// btnPresetWebServer
 			// 
+			this.btnPresetWebServer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.btnPresetWebServer.Location = new System.Drawing.Point(145, 249);
 			this.btnPresetWebServer.Name = "btnPresetWebServer";
 			this.btnPresetWebServer.Size = new System.Drawing.Size(83, 23);
@@ -274,6 +278,7 @@
 			this.label9.TabIndex = 24;
 			this.label9.Text = "Certificate Authority:";
 			this.label9.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.toolTip1.SetToolTip(this.label9, "The certificate you create will be signed by the certificate you choose here.");
 			// 
 			// label8
 			// 
@@ -376,6 +381,8 @@
 			this.label13.TabIndex = 35;
 			this.label13.Text = "Presets:";
 			this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.toolTip1.SetToolTip(this.label13, "Presets allow you to quickly set some settings appropriately for specific purpose" +
+        "s");
 			// 
 			// msExtendedKeyUsage
 			// 
