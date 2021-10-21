@@ -435,7 +435,7 @@
 			this.MainMenuStrip = this.menuStrip1;
 			this.MinimumSize = new System.Drawing.Size(504, 545);
 			this.Name = "MainForm";
-			this.Text = ".NET Certificate Authority";
+			this.Text = "SSL Certificate Maker";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.menuStrip1.ResumeLayout(false);
 			this.menuStrip1.PerformLayout();
