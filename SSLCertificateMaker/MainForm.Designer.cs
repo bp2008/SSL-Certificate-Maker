@@ -47,8 +47,9 @@
 			this.label11 = new System.Windows.Forms.Label();
 			this.btnPresetCA = new System.Windows.Forms.Button();
 			this.btnPresetWebServer = new System.Windows.Forms.Button();
-			this.panel_blackline_1 = new System.Windows.Forms.Panel();
 			this.label9 = new System.Windows.Forms.Label();
+			this.label13 = new System.Windows.Forms.Label();
+			this.panel_blackline_1 = new System.Windows.Forms.Panel();
 			this.label8 = new System.Windows.Forms.Label();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.convertToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -59,7 +60,6 @@
 			this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
 			this.ddlOutputType = new System.Windows.Forms.ComboBox();
 			this.label12 = new System.Windows.Forms.Label();
-			this.label13 = new System.Windows.Forms.Label();
 			this.msExtendedKeyUsage = new SSLCertificateMaker.MultiSelectCompact();
 			this.msKeyUsage = new SSLCertificateMaker.MultiSelectCompact();
 			this.menuStrip1.SuspendLayout();
@@ -78,8 +78,7 @@
 			// 
 			// txtAlternateDomains
 			// 
-			this.txtAlternateDomains.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+			this.txtAlternateDomains.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtAlternateDomains.Location = new System.Drawing.Point(145, 86);
 			this.txtAlternateDomains.Multiline = true;
@@ -91,7 +90,7 @@
 			// label3
 			// 
 			this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label3.Location = new System.Drawing.Point(12, 392);
+			this.label3.Location = new System.Drawing.Point(12, 389);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(127, 13);
 			this.label3.TabIndex = 4;
@@ -113,7 +112,7 @@
             "4096",
             "8192",
             "16384"});
-			this.cbKeyStrength.Location = new System.Drawing.Point(145, 389);
+			this.cbKeyStrength.Location = new System.Drawing.Point(145, 386);
 			this.cbKeyStrength.Name = "cbKeyStrength";
 			this.cbKeyStrength.Size = new System.Drawing.Size(93, 21);
 			this.cbKeyStrength.TabIndex = 60;
@@ -124,7 +123,7 @@
 			// 
 			this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(244, 392);
+			this.label4.Location = new System.Drawing.Point(244, 389);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(207, 13);
 			this.label4.TabIndex = 6;
@@ -136,7 +135,7 @@
 			// btnMakeCert
 			// 
 			this.btnMakeCert.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.btnMakeCert.Location = new System.Drawing.Point(145, 487);
+			this.btnMakeCert.Location = new System.Drawing.Point(145, 480);
 			this.btnMakeCert.Name = "btnMakeCert";
 			this.btnMakeCert.Size = new System.Drawing.Size(133, 23);
 			this.btnMakeCert.TabIndex = 90;
@@ -147,7 +146,7 @@
 			// dateFrom
 			// 
 			this.dateFrom.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.dateFrom.Location = new System.Drawing.Point(145, 337);
+			this.dateFrom.Location = new System.Drawing.Point(145, 334);
 			this.dateFrom.Name = "dateFrom";
 			this.dateFrom.Size = new System.Drawing.Size(200, 20);
 			this.dateFrom.TabIndex = 40;
@@ -155,7 +154,7 @@
 			// dateUntil
 			// 
 			this.dateUntil.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.dateUntil.Location = new System.Drawing.Point(145, 363);
+			this.dateUntil.Location = new System.Drawing.Point(145, 360);
 			this.dateUntil.Name = "dateUntil";
 			this.dateUntil.Size = new System.Drawing.Size(200, 20);
 			this.dateUntil.TabIndex = 50;
@@ -163,7 +162,7 @@
 			// label1
 			// 
 			this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label1.Location = new System.Drawing.Point(12, 343);
+			this.label1.Location = new System.Drawing.Point(12, 340);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(127, 13);
 			this.label1.TabIndex = 12;
@@ -173,7 +172,7 @@
 			// label5
 			// 
 			this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label5.Location = new System.Drawing.Point(12, 369);
+			this.label5.Location = new System.Drawing.Point(12, 366);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(127, 13);
 			this.label5.TabIndex = 13;
@@ -184,7 +183,7 @@
 			// 
 			this.txtCertPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.txtCertPassword.Location = new System.Drawing.Point(145, 443);
+			this.txtCertPassword.Location = new System.Drawing.Point(145, 440);
 			this.txtCertPassword.Name = "txtCertPassword";
 			this.txtCertPassword.Size = new System.Drawing.Size(331, 20);
 			this.txtCertPassword.TabIndex = 80;
@@ -193,7 +192,7 @@
 			// label6
 			// 
 			this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label6.Location = new System.Drawing.Point(12, 446);
+			this.label6.Location = new System.Drawing.Point(12, 443);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(127, 13);
 			this.label6.TabIndex = 15;
@@ -204,7 +203,7 @@
 			// label7
 			// 
 			this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label7.Location = new System.Drawing.Point(12, 492);
+			this.label7.Location = new System.Drawing.Point(12, 485);
 			this.label7.Name = "label7";
 			this.label7.Size = new System.Drawing.Size(127, 13);
 			this.label7.TabIndex = 16;
@@ -227,7 +226,7 @@
 			// label11
 			// 
 			this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label11.Location = new System.Drawing.Point(12, 419);
+			this.label11.Location = new System.Drawing.Point(12, 416);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(127, 13);
 			this.label11.TabIndex = 31;
@@ -238,7 +237,7 @@
 			// btnPresetCA
 			// 
 			this.btnPresetCA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.btnPresetCA.Location = new System.Drawing.Point(234, 249);
+			this.btnPresetCA.Location = new System.Drawing.Point(234, 246);
 			this.btnPresetCA.Name = "btnPresetCA";
 			this.btnPresetCA.Size = new System.Drawing.Size(43, 23);
 			this.btnPresetCA.TabIndex = 12;
@@ -250,7 +249,7 @@
 			// btnPresetWebServer
 			// 
 			this.btnPresetWebServer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.btnPresetWebServer.Location = new System.Drawing.Point(145, 249);
+			this.btnPresetWebServer.Location = new System.Drawing.Point(145, 246);
 			this.btnPresetWebServer.Name = "btnPresetWebServer";
 			this.btnPresetWebServer.Size = new System.Drawing.Size(83, 23);
 			this.btnPresetWebServer.TabIndex = 11;
@@ -258,16 +257,6 @@
 			this.toolTip1.SetToolTip(this.btnPresetWebServer, "Configure for a new Web Server");
 			this.btnPresetWebServer.UseVisualStyleBackColor = true;
 			this.btnPresetWebServer.Click += new System.EventHandler(this.btnPresetWebServer_Click);
-			// 
-			// panel_blackline_1
-			// 
-			this.panel_blackline_1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.panel_blackline_1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel_blackline_1.Location = new System.Drawing.Point(0, 54);
-			this.panel_blackline_1.Name = "panel_blackline_1";
-			this.panel_blackline_1.Size = new System.Drawing.Size(488, 1);
-			this.panel_blackline_1.TabIndex = 23;
 			// 
 			// label9
 			// 
@@ -279,6 +268,28 @@
 			this.label9.Text = "Certificate Authority:";
 			this.label9.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			this.toolTip1.SetToolTip(this.label9, "The certificate you create will be signed by the certificate you choose here.");
+			// 
+			// label13
+			// 
+			this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.label13.Location = new System.Drawing.Point(12, 251);
+			this.label13.Name = "label13";
+			this.label13.Size = new System.Drawing.Size(127, 13);
+			this.label13.TabIndex = 35;
+			this.label13.Text = "Presets:";
+			this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.toolTip1.SetToolTip(this.label13, "Presets allow you to quickly set some settings appropriately for specific purpose" +
+        "s");
+			// 
+			// panel_blackline_1
+			// 
+			this.panel_blackline_1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.panel_blackline_1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel_blackline_1.Location = new System.Drawing.Point(0, 54);
+			this.panel_blackline_1.Name = "panel_blackline_1";
+			this.panel_blackline_1.Size = new System.Drawing.Size(488, 1);
+			this.panel_blackline_1.TabIndex = 23;
 			// 
 			// label8
 			// 
@@ -318,7 +329,7 @@
 			// label10
 			// 
 			this.label10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label10.Location = new System.Drawing.Point(12, 284);
+			this.label10.Location = new System.Drawing.Point(12, 281);
 			this.label10.Name = "label10";
 			this.label10.Size = new System.Drawing.Size(127, 13);
 			this.label10.TabIndex = 28;
@@ -330,7 +341,7 @@
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.pbProgress,
             this.lblStatus});
-			this.statusStrip1.Location = new System.Drawing.Point(0, 557);
+			this.statusStrip1.Location = new System.Drawing.Point(0, 519);
 			this.statusStrip1.Name = "statusStrip1";
 			this.statusStrip1.Size = new System.Drawing.Size(488, 22);
 			this.statusStrip1.TabIndex = 29;
@@ -356,7 +367,7 @@
 			this.ddlOutputType.Items.AddRange(new object[] {
             ".pfx",
             ".cer, .key"});
-			this.ddlOutputType.Location = new System.Drawing.Point(145, 416);
+			this.ddlOutputType.Location = new System.Drawing.Point(145, 413);
 			this.ddlOutputType.Name = "ddlOutputType";
 			this.ddlOutputType.Size = new System.Drawing.Size(93, 21);
 			this.ddlOutputType.TabIndex = 70;
@@ -365,31 +376,19 @@
 			// label12
 			// 
 			this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label12.Location = new System.Drawing.Point(12, 313);
+			this.label12.Location = new System.Drawing.Point(12, 310);
 			this.label12.Name = "label12";
 			this.label12.Size = new System.Drawing.Size(127, 13);
 			this.label12.TabIndex = 33;
 			this.label12.Text = "Extended Key Usage:";
 			this.label12.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
-			// label13
-			// 
-			this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label13.Location = new System.Drawing.Point(12, 254);
-			this.label13.Name = "label13";
-			this.label13.Size = new System.Drawing.Size(127, 13);
-			this.label13.TabIndex = 35;
-			this.label13.Text = "Presets:";
-			this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.toolTip1.SetToolTip(this.label13, "Presets allow you to quickly set some settings appropriately for specific purpose" +
-        "s");
-			// 
 			// msExtendedKeyUsage
 			// 
 			this.msExtendedKeyUsage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.msExtendedKeyUsage.Items = null;
-			this.msExtendedKeyUsage.Location = new System.Drawing.Point(145, 308);
+			this.msExtendedKeyUsage.Location = new System.Drawing.Point(145, 305);
 			this.msExtendedKeyUsage.Name = "msExtendedKeyUsage";
 			this.msExtendedKeyUsage.SelectedIndices = new bool[0];
 			this.msExtendedKeyUsage.Size = new System.Drawing.Size(331, 23);
@@ -400,7 +399,7 @@
 			this.msKeyUsage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.msKeyUsage.Items = null;
-			this.msKeyUsage.Location = new System.Drawing.Point(145, 279);
+			this.msKeyUsage.Location = new System.Drawing.Point(145, 276);
 			this.msKeyUsage.Name = "msKeyUsage";
 			this.msKeyUsage.SelectedIndices = new bool[0];
 			this.msKeyUsage.Size = new System.Drawing.Size(331, 23);
@@ -410,7 +409,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(488, 579);
+			this.ClientSize = new System.Drawing.Size(488, 541);
 			this.Controls.Add(this.btnPresetWebServer);
 			this.Controls.Add(this.btnPresetCA);
 			this.Controls.Add(this.label13);
