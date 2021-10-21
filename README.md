@@ -11,7 +11,7 @@ If you need a certificate for a public web server, this is not the tool for you.
 
 ## Usage
 
-[Download from the releases tab](https://github.com/bp2008/SSL-Certificate-Maker/releases) and run the executable in a location where you have write permission, such as in a "Certificates" directory on your desktop.
+[Download SSLCertificateMaker.exe from the releases tab](https://github.com/bp2008/SSL-Certificate-Maker/releases) and run the executable in a location where you have write permission, such as in a "Certificates" directory on your desktop.
 
 For basic usage, you can simply click the `Make Certificate` button and find a new `localhost.pfx` file created in the `CERT` subdirectory.  Nobody likes renewing self-signed certificates, so by default this program uses an expiration date that is 500 years after you started it.
 
