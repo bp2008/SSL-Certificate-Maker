@@ -3,11 +3,17 @@ A graphical tool for generating SSL certificates without any prior knowledge or 
 
 ![Screenshot](https://i.imgur.com/zBX2ueh.png)
 
+## Purpose
+
+This program is intended for use in private networks, home labs, etc, where you want to easily create SSL certificates that never expire, and you are willing to make your operating system trust your own certificate authority.
+
+If you need a certificate for a public web server, this is not the tool for you.  What you want is a certificate signed by globally-trusted certificate authority like [LetsEncrypt - Free SSL/TLS Certificates](https://letsencrypt.org/).
+
 ## Usage
 
 [Download from the releases tab](https://github.com/bp2008/SSL-Certificate-Maker/releases) and run the executable in a location where you have write permission, such as in a "Certificates" directory on your desktop.
 
-For basic usage, you can simply click the `Make Certificate` button and find a new `localhost.pfx` file created next to the executable.  Nobody likes renewing self-signed certificates, so by default this program uses an expiration date that is 500 years after you started it.
+For basic usage, you can simply click the `Make Certificate` button and find a new `localhost.pfx` file created in the `CERT` subdirectory.  Nobody likes renewing self-signed certificates, so by default this program uses an expiration date that is 500 years after you started it.
 
 ## Trusting a Certificate
 
@@ -32,8 +38,6 @@ You can create a CA with this app by using the `CA` preset button before you cli
 In this screenshot, I have instructed my computer to trust "My Very Trustworthy Certificate Authority".  Then I signed another certificate "MyESXiServer" with it, and now both are trusted.
 
 ![Trusted Certificate Chain](https://i.imgur.com/8tVWpbr.png)
-
-If you want computers outside of your direct control to trust your certificates, you are in the wrong place.  You need to use a globally-trusted certificate authority like [LetsEncrypt - Free SSL/TLS Certificates](https://letsencrypt.org/) which is a more complicated process and requires you to register the domain names you wish to secure.
 
 ## Converting .cer and .key to .pfx, and vice-versa
 
