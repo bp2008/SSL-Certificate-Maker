@@ -31,20 +31,20 @@ namespace SSLCertificateMaker
 
 		private static AsymmetricCipherKeyPair GenerateRsaKeyPair(int length)
 		{
-			var keygenParam = new KeyGenerationParameters(secureRandom, length);
+			KeyGenerationParameters keygenParam = new KeyGenerationParameters(secureRandom, length);
 
-			var keyGenerator = new RsaKeyPairGenerator();
+			RsaKeyPairGenerator keyGenerator = new RsaKeyPairGenerator();
 			keyGenerator.Init(keygenParam);
 			return keyGenerator.GenerateKeyPair();
 		}
 
 		private static AsymmetricCipherKeyPair GenerateEcKeyPair(string curveName)
 		{
-			var ecParam = SecNamedCurves.GetByName(curveName);
-			var ecDomain = new ECDomainParameters(ecParam.Curve, ecParam.G, ecParam.N);
-			var keygenParam = new ECKeyGenerationParameters(ecDomain, secureRandom);
+			X9ECParameters ecParam = SecNamedCurves.GetByName(curveName);
+			ECDomainParameters ecDomain = new ECDomainParameters(ecParam.Curve, ecParam.G, ecParam.N);
+			ECKeyGenerationParameters keygenParam = new ECKeyGenerationParameters(ecDomain, secureRandom);
 
-			var keyGenerator = new ECKeyPairGenerator();
+			ECKeyPairGenerator keyGenerator = new ECKeyPairGenerator();
 			keyGenerator.Init(keygenParam);
 			return keyGenerator.GenerateKeyPair();
 		}
@@ -60,10 +60,6 @@ namespace SSLCertificateMaker
 		/// <returns></returns>
 		private static X509Certificate GenerateCertificate(MakeCertArgs args, AsymmetricKeyParameter subjectPublic, string issuerName, AsymmetricKeyParameter issuerPublic, AsymmetricKeyParameter issuerPrivate)
 		{
-			// TODO: Drop support for .cer and .key files.  Change instead to "name-cert.pem", "name-key.pem", "name-chain.pem".
-			// TODO: cert and chain (public stuff only) can be all in one pem file. e.g. "name-fullchain.pem"
-			// TODO: key, cert, chain can be all in one pem file. e.g. "name-all.pem"
-			// https://www.digicert.com/kb/ssl-support/pem-ssl-creation.htm
 			bool isCA = args.KeyUsage == (KeyUsage.CrlSign | KeyUsage.KeyCertSign);
 
 			ISignatureFactory signatureFactory;
@@ -113,7 +109,7 @@ namespace SSLCertificateMaker
 				certGenerator.AddExtension(X509Extensions.ExtendedKeyUsage, false, new ExtendedKeyUsage(args.ExtendedKeyUsage));
 
 			// Specify Basic Constraints
-			certGenerator.AddExtension(X509Extensions.BasicConstraints, true, isCA ? new BasicConstraints(0) : new BasicConstraints(false));
+			certGenerator.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCA));
 
 			return certGenerator.Generate(signatureFactory);
 		}
@@ -201,7 +197,9 @@ namespace SSLCertificateMaker
 			AsymmetricCipherKeyPair keys = GenerateRsaKeyPair(args.keyStrength);
 			X509Certificate cert = GenerateCertificate(args, keys.Public, ca.GetSubjectName(), ca.cert.GetPublicKey(), ca.privateKey);
 
-			return new CertificateBundle(cert, keys.Private);
+			CertificateBundle b = new CertificateBundle(cert, keys.Private);
+			b.SetIssuerBundle(ca);
+			return b;
 		}
 
 		///// <summary>
@@ -229,7 +227,7 @@ namespace SSLCertificateMaker
 	{
 		public X509Certificate cert;
 		public AsymmetricKeyParameter privateKey;
-		public X509Certificate[] chain;
+		public X509Certificate[] chain = new X509Certificate[0];
 		public CertificateBundle() { }
 		public CertificateBundle(X509Certificate cert, AsymmetricKeyParameter privateKey)
 		{
@@ -245,17 +243,27 @@ namespace SSLCertificateMaker
 				subject = subject.Substring(3);
 			return subject;
 		}
+		/// <summary>
+		/// Gets the certificate and chain concatenated into a single .pem file (DER → Base64 → ASCII).  Each certificate is the issuer of the certificate before it.
+		/// </summary>
+		/// <returns></returns>
 		public byte[] GetPublicCertAsCerFile()
 		{
 			using (TextWriter textWriter = new StringWriter())
 			{
 				PemWriter pemWriter = new PemWriter(textWriter);
 				pemWriter.WriteObject(cert);
+				foreach (X509Certificate link in chain)
+					pemWriter.WriteObject(link);
 				pemWriter.Writer.Flush();
 				string strKey = textWriter.ToString();
 				return Encoding.ASCII.GetBytes(strKey);
 			}
 		}
+		/// <summary>
+		/// Gets the private key as a .pem file (DER → Base64 → ASCII).
+		/// </summary>
+		/// <returns></returns>
 		public byte[] GetPrivateKeyAsKeyFile()
 		{
 			using (TextWriter textWriter = new StringWriter())
@@ -270,19 +278,16 @@ namespace SSLCertificateMaker
 		/// <summary>
 		/// Exports the certificate as a pfx file, optionally including the private key.
 		/// </summary>
-		/// <param name="includePrivateKey">If true, the private key is included.  If the private key is included, you should consider setting a password.</param>
 		/// <param name="password">If non-null, a password is required to use the resulting pfx file.</param>
 		/// <returns></returns>
-		public byte[] GetPfx(bool includePrivateKey, string password)
+		public byte[] GetPfx(string password)
 		{
 			string subject = GetSubjectName();
 			Pkcs12Store pkcs12Store = new Pkcs12Store();
 			X509CertificateEntry certEntry = new X509CertificateEntry(cert);
+			X509CertificateEntry[] chainEntry = new X509CertificateEntry[] { certEntry }.Concat(chain.Select(c => new X509CertificateEntry(c))).ToArray();
 			pkcs12Store.SetCertificateEntry(subject, certEntry);
-			if (includePrivateKey)
-			{
-				pkcs12Store.SetKeyEntry(subject, new AsymmetricKeyEntry(privateKey), new[] { certEntry });
-			}
+			pkcs12Store.SetKeyEntry(subject, new AsymmetricKeyEntry(privateKey), chainEntry);
 			using (MemoryStream pfxStream = new MemoryStream())
 			{
 				pkcs12Store.Save(pfxStream, password == null ? null : password.ToCharArray(), CertMaker.secureRandom);
@@ -297,25 +302,42 @@ namespace SSLCertificateMaker
 		/// <returns></returns>
 		public static CertificateBundle LoadFromCerAndKeyFiles(string publicCer, string privateKey)
 		{
+			string[] pemFilePaths = new string[] { publicCer, privateKey };
+			AsymmetricKeyParameter key = null;
+			List<X509Certificate> certs = new List<X509Certificate>();
+			foreach (string path in pemFilePaths)
+			{
+				if (path != null && File.Exists(path))
+				{
+					using (StreamReader sr = new StreamReader(path, Encoding.ASCII))
+					{
+						PemReader reader = new PemReader(sr);
+						object obj = reader.ReadObject();
+						while (obj != null)
+						{
+							if (obj is AsymmetricCipherKeyPair)
+								key = ((AsymmetricCipherKeyPair)obj).Private;
+							else if (obj is X509Certificate)
+								certs.Add((X509Certificate)obj);
+
+							obj = reader.ReadObject();
+						}
+					}
+				}
+			}
+			if (key == null)
+				throw new ApplicationException("Private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"");
+
+			X509Certificate primary = certs.FirstOrDefault(c => DoesCertificateMatchKey(c, key));
+			if (primary == null)
+				throw new ApplicationException("The public key matching the private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"");
+
+			X509Certificate[] fullchain = ChainBuilder.BuildChain(primary, certs.Where(c => c != primary));
+
 			CertificateBundle b = new CertificateBundle();
-			if (publicCer != null && File.Exists(publicCer))
-			{
-				using (StreamReader sr = new StreamReader(publicCer, Encoding.ASCII))
-				{
-					PemReader reader = new PemReader(sr);
-					object obj = reader.ReadObject();
-					b.cert = (X509Certificate)obj;
-				}
-			}
-			if (privateKey != null && File.Exists(privateKey))
-			{
-				using (StreamReader sr = new StreamReader(privateKey, Encoding.ASCII))
-				{
-					PemReader reader = new PemReader(sr);
-					object obj = reader.ReadObject();
-					b.privateKey = ((AsymmetricCipherKeyPair)obj).Private;
-				}
-			}
+			b.cert = fullchain[0];
+			b.chain = fullchain.Skip(1).ToArray();
+			b.privateKey = key;
 			return b;
 		}
 
@@ -329,22 +351,64 @@ namespace SSLCertificateMaker
 		{
 			try
 			{
-				Pkcs12Store pkcs12Store = new Pkcs12Store(File.OpenRead(filePath), password == null ? null : password.ToCharArray());
-				foreach (string alias in pkcs12Store.Aliases)
+				using (Stream fileStream = File.OpenRead(filePath))
 				{
-					CertificateBundle b = new CertificateBundle();
-					b.cert = pkcs12Store.GetCertificate(alias)?.Certificate;
-					b.privateKey = pkcs12Store.GetKey(alias)?.Key;
-					b.chain = pkcs12Store.GetCertificateChain(alias).Select(e=>e.Certificate).ToArray();
-					if (b.cert != null && b.privateKey != null)
-						return b;
+					Pkcs12Store pkcs12Store = new Pkcs12Store(fileStream, password == null ? null : password.ToCharArray());
+					foreach (string alias in pkcs12Store.Aliases)
+					{
+						CertificateBundle b = new CertificateBundle();
+						X509Certificate[] pfxChain = pkcs12Store.GetCertificateChain(alias).Select(e => e.Certificate).ToArray();
+						b.cert = pfxChain.First();
+						b.privateKey = pkcs12Store.GetKey(alias)?.Key;
+						X509Certificate[] fullchain = ChainBuilder.BuildChain(b.cert, pfxChain.Skip(1));
+						b.chain = fullchain.Skip(1).ToArray();
+						if (b.cert != null && b.privateKey != null)
+							return b;
+					}
+					return null;
 				}
-				return null;
 			}
 			catch (IOException)
 			{
 				return null;
 			}
+		}
+		/// <summary>
+		/// Returns true of the certificate has the public key that matches the private key. Supports RSA, DSA, and EC keys.
+		/// </summary>
+		/// <param name="cert">Certificate with a public key</param>
+		/// <param name="privKey">Private key</param>
+		/// <returns></returns>
+		private static bool DoesCertificateMatchKey(X509Certificate cert, AsymmetricKeyParameter privKey)
+		{
+			AsymmetricKeyParameter pubKey = cert.GetPublicKey();
+			if (pubKey is RsaKeyParameters && privKey is RsaPrivateCrtKeyParameters)
+			{
+				RsaKeyParameters a = (RsaKeyParameters)pubKey;
+				RsaPrivateCrtKeyParameters b = (RsaPrivateCrtKeyParameters)privKey;
+				return a.Exponent.Equals(b.PublicExponent) && a.Modulus.Equals(b.Modulus);
+			}
+			else if (pubKey is DsaPublicKeyParameters && privKey is DsaPrivateKeyParameters)
+			{
+				DsaPublicKeyParameters a = (DsaPublicKeyParameters)pubKey;
+				DsaPrivateKeyParameters b = (DsaPrivateKeyParameters)privKey;
+				return a.Y.Equals(b.Parameters.G.ModPow(b.X, b.Parameters.P));
+			}
+			else if (pubKey is ECPublicKeyParameters && privKey is ECPrivateKeyParameters)
+			{
+				ECPublicKeyParameters a = (ECPublicKeyParameters)pubKey;
+				ECPrivateKeyParameters b = (ECPrivateKeyParameters)privKey;
+				return a.Q.Equals(b.Parameters.G.Multiply(b.D));
+			}
+			return false;
+		}
+		/// <summary>
+		/// Sets the <see cref="chain"/> field to the issuer's certificate and chain.
+		/// </summary>
+		/// <param name="issuerBundle"></param>
+		public void SetIssuerBundle(CertificateBundle issuerBundle)
+		{
+			chain = new X509Certificate[] { issuerBundle.cert }.Concat(issuerBundle.chain).ToArray();
 		}
 	}
 }

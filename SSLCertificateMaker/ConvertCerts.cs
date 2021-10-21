@@ -11,6 +11,7 @@ using System.Windows.Forms;
 
 namespace SSLCertificateMaker
 {
+	// Some notes about pem files containing multiple objects: https://www.digicert.com/kb/ssl-support/pem-ssl-creation.htm
 	public partial class ConvertCerts : Form
 	{
 		private bool suppressSourceChange = false;
@@ -157,7 +158,7 @@ namespace SSLCertificateMaker
 				if (dr != DialogResult.Yes)
 					return;
 			}
-			File.WriteAllBytes(fullNameWithoutExtension + ".pfx", bundle.GetPfx(true, null));
+			File.WriteAllBytes(fullNameWithoutExtension + ".pfx", bundle.GetPfx(null));
 		}
 		#endregion
 		#region CER and KEY handlers

@@ -56,7 +56,7 @@
 			this.label10 = new System.Windows.Forms.Label();
 			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
 			this.pbProgress = new System.Windows.Forms.ToolStripProgressBar();
-			this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+			this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
 			this.ddlOutputType = new System.Windows.Forms.ComboBox();
 			this.label12 = new System.Windows.Forms.Label();
 			this.label13 = new System.Windows.Forms.Label();
@@ -324,7 +324,7 @@
 			// 
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.pbProgress,
-            this.toolStripStatusLabel1});
+            this.lblStatus});
 			this.statusStrip1.Location = new System.Drawing.Point(0, 557);
 			this.statusStrip1.Name = "statusStrip1";
 			this.statusStrip1.Size = new System.Drawing.Size(488, 22);
@@ -336,12 +336,12 @@
 			this.pbProgress.Name = "pbProgress";
 			this.pbProgress.Size = new System.Drawing.Size(100, 16);
 			// 
-			// toolStripStatusLabel1
+			// lblStatus
 			// 
-			this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-			this.toolStripStatusLabel1.Size = new System.Drawing.Size(129, 17);
-			this.toolStripStatusLabel1.Tag = "";
-			this.toolStripStatusLabel1.Text = "status field placeholder";
+			this.lblStatus.Name = "lblStatus";
+			this.lblStatus.Size = new System.Drawing.Size(129, 17);
+			this.lblStatus.Tag = "";
+			this.lblStatus.Text = "status field placeholder";
 			// 
 			// ddlOutputType
 			// 
@@ -471,7 +471,7 @@
 		private System.Windows.Forms.Label label10;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		private System.Windows.Forms.ToolStripProgressBar pbProgress;
-		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+		private System.Windows.Forms.ToolStripStatusLabel lblStatus;
 		private System.Windows.Forms.ComboBox ddlOutputType;
 		private System.Windows.Forms.Label label11;
 		private MultiSelectCompact msKeyUsage;

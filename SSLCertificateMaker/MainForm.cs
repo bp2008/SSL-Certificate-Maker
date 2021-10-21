@@ -51,9 +51,7 @@ namespace SSLCertificateMaker
 			ddlOutputType_SelectedIndexChanged(null, null);
 			msKeyUsage.Initialize("Key Usage", KeyUsageOptions);
 			msExtendedKeyUsage.Initialize("Extended Key Usage", ExtendedKeyUsageOptions);
-			//lblKeyUsage.Text = "N/A";
-			//ddlKeyUsage.Items.AddRange(KeyUsageOptions.Select(kvp => kvp.Key).ToArray());
-			//ddlKeyUsage.SelectedIndex = 0;
+			lblStatus.Text = "";
 
 			btnPresetWebServer_Click(null, null);
 
@@ -119,6 +117,7 @@ namespace SSLCertificateMaker
 				btnMakeCert.Text = c_cancel;
 
 				StartProgress();
+				SetStatus("Initializing background thread");
 
 				worker = new Thread(MakeCertificate);
 				worker.IsBackground = true;
@@ -150,6 +149,11 @@ namespace SSLCertificateMaker
 		{
 			try
 			{
+				Directory.CreateDirectory(CA_DIR);
+				Directory.CreateDirectory(CERT_DIR);
+
+				SetStatus("Checking for existing certificate");
+
 				MakeCertArgs args = (MakeCertArgs)Argument;
 
 				// Verify that the files do not already exist
@@ -175,6 +179,8 @@ namespace SSLCertificateMaker
 						return;
 					}
 				}
+
+				SetStatus("Generating certificate");
 
 				CertificateBundle certBundle;
 				if (args.issuer == c_SelfSigned)
@@ -211,6 +217,8 @@ namespace SSLCertificateMaker
 					certBundle = CertMaker.GetCertificateSignedByCA(args, issuerBundle);
 				}
 
+				SetStatus("Saving certificate to disk");
+
 				if (args.saveCerAndKey)
 				{
 					File.WriteAllBytes(safeFileName + ".cer", certBundle.GetPublicCertAsCerFile());
@@ -220,13 +228,19 @@ namespace SSLCertificateMaker
 				{
 					if (args.password == "")
 						args.password = null;
-					File.WriteAllBytes(safeFileName + ".pfx", certBundle.GetPfx(true, args.password));
+					File.WriteAllBytes(safeFileName + ".pfx", certBundle.GetPfx(args.password));
 				}
+
+				SetStatus("");
 			}
-			catch (ThreadAbortException) { }
+			catch (ThreadAbortException)
+			{
+				SetStatus("Aborted");
+			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.ToString());
+				SetStatus("An error occurred");
 			}
 			finally
 			{
@@ -268,6 +282,15 @@ namespace SSLCertificateMaker
 			}
 		}
 
+		private void SetStatus(string str)
+		{
+			if (this.InvokeRequired)
+				this.Invoke((Action<string>)SetStatus, str);
+			else
+			{
+				lblStatus.Text = str;
+			}
+		}
 		private void ddlOutputType_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			txtCertPassword.Enabled = (string)ddlOutputType.SelectedItem == ".pfx";

@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CertMaker.cs" />
+    <Compile Include="ChainBuilder.cs" />
     <Compile Include="ConvertCerts.cs">
       <SubType>Form</SubType>
     </Compile>
