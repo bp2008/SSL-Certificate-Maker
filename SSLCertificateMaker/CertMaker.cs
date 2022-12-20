@@ -236,6 +236,10 @@ namespace SSLCertificateMaker
 		}
 		public string GetSubjectName()
 		{
+			return GetSubjectName(cert);
+		}
+		private static string GetSubjectName(X509Certificate cert)
+		{
 			if (cert == null)
 				return "Unknown";
 			string subject = cert.SubjectDN.ToString();
@@ -285,9 +289,10 @@ namespace SSLCertificateMaker
 			string subject = GetSubjectName();
 			Pkcs12Store pkcs12Store = new Pkcs12Store();
 			X509CertificateEntry certEntry = new X509CertificateEntry(cert);
-			X509CertificateEntry[] chainEntry = new X509CertificateEntry[] { certEntry }.Concat(chain.Select(c => new X509CertificateEntry(c))).ToArray();
-			pkcs12Store.SetCertificateEntry(subject, certEntry);
-			pkcs12Store.SetKeyEntry(subject, new AsymmetricKeyEntry(privateKey), chainEntry);
+			X509CertificateEntry[] chainEntries = new X509CertificateEntry[] { certEntry }.Concat(chain.Select(c => new X509CertificateEntry(c))).ToArray();
+			foreach (X509CertificateEntry ce in chainEntries)
+				pkcs12Store.SetCertificateEntry(GetSubjectName(ce.Certificate), ce);
+			pkcs12Store.SetKeyEntry(subject, new AsymmetricKeyEntry(privateKey), chainEntries);
 			using (MemoryStream pfxStream = new MemoryStream())
 			{
 				pkcs12Store.Save(pfxStream, password == null ? null : password.ToCharArray(), CertMaker.secureRandom);
@@ -357,7 +362,10 @@ namespace SSLCertificateMaker
 					foreach (string alias in pkcs12Store.Aliases)
 					{
 						CertificateBundle b = new CertificateBundle();
-						X509Certificate[] pfxChain = pkcs12Store.GetCertificateChain(alias).Select(e => e.Certificate).ToArray();
+						X509CertificateEntry[] entryChain = pkcs12Store.GetCertificateChain(alias);
+						if (entryChain == null)
+							continue;
+						X509Certificate[] pfxChain = entryChain.Select(e => e.Certificate).ToArray();
 						b.cert = pfxChain.First();
 						b.privateKey = pkcs12Store.GetKey(alias)?.Key;
 						X509Certificate[] fullchain = ChainBuilder.BuildChain(b.cert, pfxChain.Skip(1));
