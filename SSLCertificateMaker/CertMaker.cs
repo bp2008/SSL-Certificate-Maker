@@ -308,8 +308,9 @@ namespace SSLCertificateMaker
 		public static CertificateBundle LoadFromCerAndKeyFiles(string publicCer, string privateKey)
 		{
 			string[] pemFilePaths = new string[] { publicCer, privateKey };
-			AsymmetricKeyParameter key = null;
+			List<AsymmetricKeyParameter> keys = new List<AsymmetricKeyParameter>();
 			List<X509Certificate> certs = new List<X509Certificate>();
+			StringBuilder sbDebugWhatWasFound = new StringBuilder();
 			foreach (string path in pemFilePaths)
 			{
 				if (path != null && File.Exists(path))
@@ -320,8 +321,12 @@ namespace SSLCertificateMaker
 						object obj = reader.ReadObject();
 						while (obj != null)
 						{
+							sbDebugWhatWasFound.AppendLine(path + ": " + obj.GetType().ToString());
+
 							if (obj is AsymmetricCipherKeyPair)
-								key = ((AsymmetricCipherKeyPair)obj).Private;
+								keys.Add(((AsymmetricCipherKeyPair)obj).Private);
+							else if (obj is AsymmetricKeyParameter)
+								keys.Add((AsymmetricKeyParameter)obj);
 							else if (obj is X509Certificate)
 								certs.Add((X509Certificate)obj);
 
@@ -330,19 +335,24 @@ namespace SSLCertificateMaker
 					}
 				}
 			}
-			if (key == null)
-				throw new ApplicationException("Private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"");
+			if (keys.Count == 0)
+				throw new ApplicationException("Private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"." + Environment.NewLine
+				+ "For debugging purposes, here is what was found:" + Environment.NewLine + sbDebugWhatWasFound.ToString());
+			else if (keys.Count > 1)
+				throw new ApplicationException(keys.Count + " private keys were found in input files \"" + string.Join("\", \"", pemFilePaths) + "\" (this program doesn't know which key to use)." + Environment.NewLine
+				+ "For debugging purposes, here is what was found:" + Environment.NewLine + sbDebugWhatWasFound.ToString());
 
-			X509Certificate primary = certs.FirstOrDefault(c => DoesCertificateMatchKey(c, key));
+			X509Certificate primary = certs.FirstOrDefault(c => DoesCertificateMatchKey(c, keys[0]));
 			if (primary == null)
-				throw new ApplicationException("The public key matching the private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"");
+				throw new ApplicationException("The public key matching the private key was not found in input files \"" + string.Join("\", \"", pemFilePaths) + "\"." + Environment.NewLine
+				+ "For debugging purposes, here is what was found:" + Environment.NewLine + sbDebugWhatWasFound.ToString());
 
 			X509Certificate[] fullchain = ChainBuilder.BuildChain(primary, certs.Where(c => c != primary));
 
 			CertificateBundle b = new CertificateBundle();
 			b.cert = fullchain[0];
 			b.chain = fullchain.Skip(1).ToArray();
-			b.privateKey = key;
+			b.privateKey = keys[0];
 			return b;
 		}
 
